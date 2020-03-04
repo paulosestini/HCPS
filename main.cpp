@@ -1,6 +1,5 @@
 #include <iostream>
-#include "BuildingElements.h"
-#include "MathUtils.hpp"
+
 #include <chrono>
 #include <thread>
 #include <cstdlib>
@@ -8,82 +7,83 @@
 #include <SFML/Window.hpp>
 #include <vector>
 
-using namespace std;
+#include "StructureElement.hpp"
+#include "SimpleBond.hpp"
+#include "MathUtils.hpp"
+
+using namespace StructSim;
 
 int main()
 {   
-    // Particles and bonds storage
-    vector<Particle*> fixedParticles;
-    vector<Particle*> particles;
-    vector<Bond> bonds;
+    StructureElement structure;
 
     // The fixed particles
-    fixedParticles.push_back(new Particle(Vector{2+1.75, 6}, 1));
-    fixedParticles.push_back(new Particle(Vector{2+2.25, 6}, 1));
+    structure.fixedParticles.push_back(new StructureElement::Particle(MyMath::Vector{2+2.25, 6}, MyMath::Vector{0, 0}, 1));
+    structure.fixedParticles.push_back(new StructureElement::Particle(MyMath::Vector{2+2.25, 6}, MyMath::Vector{0, 0}, 1));
 
     float particles_y = 30; // How many particles of height the tower will have
     float y_spacing = 5/particles_y; // Vertical spacing between particles in the tower
 
     for(int i = 0; i < particles_y; i++)
     {
-        particles.push_back(new Particle(Vector{2+1.75, 6-(i+1)*y_spacing}, 1));
-        particles.push_back(new Particle(Vector{2+2.25, 6-(i+1)*y_spacing}, 1));
+        structure.particles.push_back(new StructureElement::Particle(MyMath::Vector{2+1.75, 6-(i+1)*y_spacing}, MyMath::Vector{0, 0}, 1));
+        structure.particles.push_back(new StructureElement::Particle(MyMath::Vector{2+2.25, 6-(i+1)*y_spacing}, MyMath::Vector{0, 0}, 1));
     }
     
     // Sets the bonds between the fixed particles and the first two free particles
-    bonds.push_back(Bond(fixedParticles[0], particles[0],
-                    vectorMag(vectorSub(fixedParticles[0]->pos, particles[0]->pos))));
+    structure.bonds.push_back(new SimpleBond(structure.fixedParticles[0], structure.particles[0],
+                    vectorGetMag(vectorGetSub(structure.fixedParticles[0]->GetPosition(), structure.particles[0]->GetPosition()))));
 
-    bonds.push_back(Bond(fixedParticles[1], particles[0],
-                    vectorMag(vectorSub(fixedParticles[1]->pos, particles[0]->pos))));
+    structure.bonds.push_back(new SimpleBond(structure.fixedParticles[1], structure.particles[0],
+                    vectorGetMag(vectorGetSub(structure.fixedParticles[1]->GetPosition(), structure.particles[0]->GetPosition()))));
 
-    bonds.push_back(Bond(fixedParticles[0], particles[1],
-                    vectorMag(vectorSub(fixedParticles[0]->pos, particles[1]->pos))));
+    structure.bonds.push_back(new SimpleBond(structure.fixedParticles[0], structure.particles[1],
+                    vectorGetMag(vectorGetSub(structure.fixedParticles[0]->GetPosition(), structure.particles[1]->GetPosition()))));
 
-    bonds.push_back(Bond(fixedParticles[1], particles[1],
-                    vectorMag(vectorSub(fixedParticles[1]->pos, particles[1]->pos))));
+    structure.bonds.push_back(new SimpleBond(structure.fixedParticles[1], structure.particles[1],
+                    vectorGetMag(vectorGetSub(structure.fixedParticles[1]->GetPosition(), structure.particles[1]->GetPosition()))));
 
     
     for(int i = 0; i < particles_y; i += 1)
     {   
-        bonds.push_back(Bond(particles[2*i], particles[2*i+1], 
-                        vectorMag(vectorSub(particles[2*i]->pos, particles[2*i+1]->pos))));
+        structure.bonds.push_back(new SimpleBond(structure.particles[2*i], structure.particles[2*i+1], 
+                        vectorGetMag(vectorGetSub(structure.particles[2*i]->GetPosition(), structure.particles[2*i+1]->GetPosition()))));
         if(i != particles_y-1)
         {
-            bonds.push_back(Bond(particles[2*i], particles[2*i+2],
-                            vectorMag(vectorSub(particles[2*i]->pos, particles[2*i+2]->pos))));
+            structure.bonds.push_back(new SimpleBond(structure.particles[2*i], structure.particles[2*i+2],
+                            vectorGetMag(vectorGetSub(structure.particles[2*i]->GetPosition(), structure.particles[2*i+2]->GetPosition()))));
 
-            bonds.push_back(Bond(particles[2*i], particles[2*i+3],
-                            vectorMag(vectorSub(particles[2*i]->pos, particles[2*i+3]->pos))));
+            structure.bonds.push_back(new SimpleBond(structure.particles[2*i], structure.particles[2*i+3],
+                            vectorGetMag(vectorGetSub(structure.particles[2*i]->GetPosition(), structure.particles[2*i+3]->GetPosition()))));
 
-            bonds.push_back(Bond(particles[2*i+1], particles[2*i+2], 
-                            vectorMag(vectorSub(particles[2*i+1]->pos, particles[2*i+2]->pos))));
+            structure.bonds.push_back(new SimpleBond(structure.particles[2*i+1], structure.particles[2*i+2], 
+                            vectorGetMag(vectorGetSub(structure.particles[2*i+1]->GetPosition(), structure.particles[2*i+2]->GetPosition()))));
 
-            bonds.push_back(Bond(particles[2*i+1], particles[2*i+3], 
-                            vectorMag(vectorSub(particles[2*i+1]->pos, particles[2*i+3]->pos))));
+            structure.bonds.push_back(new SimpleBond(structure.particles[2*i+1], structure.particles[2*i+3], 
+                            vectorGetMag(vectorGetSub(structure.particles[2*i+1]->GetPosition(), structure.particles[2*i+3]->GetPosition()))));
         }
     }
 
-    // fixedParticles.push_back(new Particle(Vector{2+1.75, 6-(particles_y+1)*y_spacing}, 1));
-    // fixedParticles.push_back(new Particle(Vector{2+2.25, 6-(particles_y+1)*y_spacing}, 1));
+    // structure.fixedParticles.push_back(new Particle(Vector{2+1.75, 6-(particles_y+1)*y_spacing}, 1));
+    // structure.fixedParticles.push_back(new Particle(Vector{2+2.25, 6-(particles_y+1)*y_spacing}, 1));
 
-    // bonds.push_back(Bond(fixedParticles[2], particles[particles_y*2-1],
-    //                 vectorMag(vectorSub(fixedParticles[2]->pos, particles[particles_y*2-1]->pos))));
+    // bonds.push_back(Bond(structure.fixedParticles[2], particles[particles_y*2-1],
+    //                 vectorGetMag(vectorGetSub(structure.fixedParticles[2]->GetPosition(), particles[particles_y*2-1]->GetPosition()))));
 
-    // bonds.push_back(Bond(fixedParticles[3], particles[particles_y*2-1],
-    //                 vectorMag(vectorSub(fixedParticles[3]->pos, particles[particles_y*2-1]->pos))));
+    // bonds.push_back(Bond(structure.fixedParticles[3], particles[particles_y*2-1],
+    //                 vectorGetMag(vectorGetSub(structure.fixedParticles[3]->GetPosition(), particles[particles_y*2-1]->GetPosition()))));
 
-    // bonds.push_back(Bond(fixedParticles[2], particles[particles_y*2-2],
-    //                 vectorMag(vectorSub(fixedParticles[2]->pos, particles[particles_y*2-2]->pos))));
+    // bonds.push_back(Bond(structure.fixedParticles[2], particles[particles_y*2-2],
+    //                 vectorGetMag(vectorGetSub(structure.fixedParticles[2]->GetPosition(), particles[particles_y*2-2]->GetPosition()))));
 
-    // bonds.push_back(Bond(fixedParticles[3], particles[particles_y*2-2],
-    //                 vectorMag(vectorSub(fixedParticles[3]->pos, particles[particles_y*2-2]->pos))));
+    // bonds.push_back(Bond(structure.fixedParticles[3], particles[particles_y*2-2],
+    //                 vectorGetMag(vectorGetSub(structure.fixedParticles[3]->GetPosition(), particles[particles_y*2-2]->GetPosition()))));
 
     // Constants
     constexpr float dt = 0.05;
     constexpr int scale = 100;
     constexpr int circleRadius = 3;
-    Vector gravity{0, 0.001};
+    MyMath::Vector gravity{0, 0.001};
     
     // Windows and geometry
     sf::RenderWindow window(sf::VideoMode(800, 800), "Simulation");
@@ -113,21 +113,21 @@ int main()
         window.clear(sf::Color::Black);
 
         // Updating bonds and drawing the connection lines
-        for(auto bond: bonds)
+        for(auto bond: structure.bonds)
         {
-            bond.act(dt);
-            line[0].position = sf::Vector2f(bond.p1->pos.x*scale+circleRadius, 
-                                            bond.p1->pos.y*scale+circleRadius);
-            line[1].position = sf::Vector2f(bond.p2->pos.x*scale+circleRadius, 
-                                            bond.p2->pos.y*scale+circleRadius);
+            bond->Act(dt);
+            line[0].position = sf::Vector2f(bond->GetParticle1Ref()->GetPosition().x*scale+circleRadius, 
+                                            bond->GetParticle1Ref()->GetPosition().y*scale+circleRadius);
+            line[1].position = sf::Vector2f(bond->GetParticle2Ref()->GetPosition().x*scale+circleRadius, 
+                                            bond->GetParticle2Ref()->GetPosition().y*scale+circleRadius);
             window.draw(line, 2, sf::Lines);    
         }
 
         // Drawing fixed particles
         circle.setFillColor(sf::Color::Red);
-        for(auto particle: fixedParticles)
+        for(auto particle: structure.fixedParticles)
         {   
-            circle.setPosition(sf::Vector2f(particle->pos.x*scale, particle->pos.y*scale));
+            circle.setPosition(sf::Vector2f(particle->GetPosition().x*scale, particle->GetPosition().y*scale));
             window.draw(circle);
         }
 
@@ -135,10 +135,10 @@ int main()
         for(int i = 21; i < 31; i += 2)
         {   
             if(!shouldApplyForce) break;
-            particles[particles_y*2-i]->applyForce(Vector({-0.005, 0}), dt);
+            structure.particles[particles_y*2-i]->ApplyForce(MyMath::Vector({-0.005, 0}), dt);
 
-            float x = particles[particles_y*2-i]->pos.x*scale;
-            float y = particles[particles_y*2-i]->pos.y*scale;
+            float x = structure.particles[particles_y*2-i]->GetPosition().x*scale;
+            float y = structure.particles[particles_y*2-i]->GetPosition().y*scale;
             
             rect.setPosition(sf::Vector2f(x, y));
             window.draw(rect);
@@ -147,11 +147,11 @@ int main()
 
         // Updating and drawing free particles
         circle.setFillColor(sf::Color::White);
-        for(auto particle: particles)
+        for(auto particle: structure.particles)
         {   
             //particle->applyForce(gravity, dt);
-            particle->update(dt);
-            //circle.setPosition(sf::Vector2f(particle->pos.x*scale, particle->pos.y*scale));
+            particle->Update(dt);
+            //circle.setPosition(sf::Vector2f(particle->GetPosition().x*scale, particle->GetPosition().y*scale));
             //window.draw(circle);
         }
 
