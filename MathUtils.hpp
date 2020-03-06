@@ -1,15 +1,18 @@
 #ifndef MATHUTILS_H
 #define MATHUTILS_H
 
-struct Vector
+namespace MyMath
 {
-    float x, y;
-};
+    struct Vector
+    {
+        float x, y;
+    };
 
-float vectorMag(Vector v);
-Vector vectorAdd(Vector v1, Vector v2);
-Vector vectorSub(Vector v1, Vector v2);
-Vector normalize(Vector v);
-Vector vectorScale(Vector v, float a);
+    float vectorGetMag(Vector v);
+    Vector vectorGetAdd(Vector v1, Vector v2);
+    Vector vectorGetSub(Vector v1, Vector v2);
+    Vector normalize(Vector v);
+    Vector vectorSetScale(Vector v, float a);
+}
 
 #endif
