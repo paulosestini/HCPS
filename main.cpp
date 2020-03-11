@@ -14,11 +14,11 @@ constexpr double clock_dt = timeScale*dt/1000000; // Display clock dt (change ON
 constexpr double spatialScale = 100.f;
 
 constexpr int circleRadius = 3;
-const int particles_y = 25; // How many particles of height the tower will have
+const int particles_y = 15; // How many particles of height the tower will have
 const double y_spacing = 5.f/particles_y; // Vertical spacing between particles in the tower
 const double x_spacing = 1.f;
 const double fieldDissipation = 0.f;
-MathUtils::Vector gravity{0, 9.8f*timeScale*timeScale};
+MathUtils::Vector gravity{0.f, 9.8f*timeScale*timeScale};
 
 // Inputs
 hc::Inputs inputs;
@@ -28,7 +28,7 @@ hc::GraphicElements* graphics = new hc::GraphicElements(800, 800, circleRadius, 
 
 int main()
 {
-    hc::SimpleTower tower = hc::SimpleTower(particles_y, y_spacing, x_spacing, timeScale, true, true);
+    hc::SimpleTower tower = hc::SimpleTower(particles_y, y_spacing, x_spacing, timeScale, false, false);
 
     while(graphics->isWindowOpen())
     {
@@ -36,54 +36,47 @@ int main()
 
         graphics->clear();
 
-        // Updating bonds and drawing the connection lines
-        tower.act(graphics, dt); 
-
-        // Updating and drawing free particles
-        tower.update(graphics, dt);
-
         // Applying natural external forces to the tower
         for(auto particle: tower.particles)
         {
             // Some dissipation of energy
-            particle->accelerate(MathUtils::vectorScale(MathUtils::vectorScale(particle->getVelocity(), MathUtils::vectorMag(particle->getVelocity())), -fieldDissipation));
+            particle->applyForce(MathUtils::vectorScale(MathUtils::vectorScale(particle->getVelocity(), MathUtils::vectorMag(particle->getVelocity())), -fieldDissipation));
 
             // Gravity
             particle->accelerate(MathUtils::vectorScale(gravity, dt));
         }
 
+        // Updating bonds and drawing the connection lines
+        tower.act(graphics, dt); 
+
         // Applying eventual external forces to the tower
-        if (inputs.isForceApplied) // Applying force lines
+        if (inputs.isForce1Applied) // Applying side force lines
         {
             for(int i = 11; i < 31; i += 2)
             { 
-                tower.particles[particles_y*2-i]->applyForce(MathUtils::Vector({-100*timeScale*timeScale, 0}));
+                tower.particles[particles_y*2-i]->applyForce(MathUtils::Vector({-200*timeScale*timeScale, 0}));
 
                 double x = tower.particles[particles_y*2-i]->getPosition().x*spatialScale;
                 double y = tower.particles[particles_y*2-i]->getPosition().y*spatialScale;
                 
-                graphics->rect.setPosition(sf::Vector2f(x, y));
-                graphics->window.draw(graphics->rect);
+                graphics->drawForce(x, y, 0);
             }
         }
-        if (inputs.isMouseClicked) // Dragging nodes with mouse
+        if (inputs.isForce2Applied) // Applying top force lines
         {
-            for (auto particle: tower.particles)
-            {
-                float distX = inputs.mousePos.x - particle->getPosition().x*spatialScale;
-                float distY = inputs.mousePos.y - particle->getPosition().y*spatialScale;
-                if (distX*distX + distY*distY <= circleRadius*spatialScale)
-                    particle->isSelected = true;
-                else 
-                    particle->isSelected = false;
+            for(int i = 0; i < 2; i++)
+            { 
+                tower.particles[particles_y*2-1-i]->applyForce(MathUtils::Vector({0, 2500*timeScale*timeScale}));
+
+                double x = tower.particles[particles_y*2-1-i]->getPosition().x*spatialScale;
+                double y = tower.particles[particles_y*2-1-i]->getPosition().y*spatialScale;
                 
-                if (particle->isSelected)
-                {
-                    particle->applyForce(MathUtils::Vector({distX*1000*timeScale*timeScale, distY*1000*timeScale*timeScale}));
-                    //break;
-                }
+                graphics->drawForce(x, y, 270);
             }
         }
+
+        // Updating and drawing free, fixed and selected particles
+        tower.update(graphics, inputs, spatialScale, timeScale, dt);
 
         graphics->drawClock();
         graphics->display();       

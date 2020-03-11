@@ -42,6 +42,16 @@ namespace hc
         vel = MathUtils::vectorAdd(vel, dVel);
     }
 
+    MathUtils::Vector Particle::getAcceleration()
+    {
+        return acc;
+    }
+
+    void Particle::setAcceleration(MathUtils::Vector newAcc)
+    {
+        acc = newAcc;
+    }
+
     //Functions
     void Particle::applyForce(MathUtils::Vector force)
     {   

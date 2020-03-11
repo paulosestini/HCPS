@@ -16,12 +16,16 @@ namespace hc
         MathUtils::Vector getPosition();
         void setPosition(MathUtils::Vector newPos);
         void move(MathUtils::Vector dPos);
+
         MathUtils::Vector getVelocity();
         void setVelocity(MathUtils::Vector newVel);
         void accelerate(MathUtils::Vector dVel);
 
+        MathUtils::Vector getAcceleration();
+        void setAcceleration(MathUtils::Vector newAcc);
+        void applyForce(MathUtils::Vector force);
+
         //Functions
-        void applyForce(MathUtils::Vector force); // Applies force during interval dt
         void update(double dt); // Updates the particles position with timestep dt
 
         // Global variables
