@@ -9,7 +9,8 @@ namespace hc
 {
     struct Inputs
     {
-        bool isForceApplied = false;
+        bool isForce1Applied = false;
+        bool isForce2Applied = false;
         bool isMouseClicked = false;
         sf::Vector2f mousePos;
     };
@@ -28,6 +29,7 @@ namespace hc
         void update(Inputs* inputs);
 
         // Functions
+        void drawForce(double x, double y, float radians);
         void drawBond(MathUtils::Vector force, MathUtils::Vector p1Pos, MathUtils::Vector p2Pos);
         void drawFreeNode(MathUtils::Vector pos);
         void drawFixedNode(MathUtils::Vector pos);
@@ -49,7 +51,7 @@ namespace hc
     private:
         // Local variables
         // Clock related variables
-        float colorK = 1e-14;
+        float colorK = 1e-20;
         const double frame_dt = 1000000.f/60.f; // Microseconds
         double virtual_dt, virtualTime = 0.f;
         sf::Clock clock;

@@ -12,16 +12,50 @@ namespace hc
         }
     }
 
-    void SimpleTower::update(hc::GraphicElements *graphics, double dt) //OBSERVACAO: QUERIA DEFINIR ESSA FUNCAO NA CLASSE BOND, MAS O PROGRAMO BUGAVA
+    void SimpleTower::update(hc::GraphicElements *graphics, hc::Inputs inputs, const double spatialScale, const double timeScale, double dt) //OBSERVACAO: QUERIA DEFINIR ESSA FUNCAO NA CLASSE BOND, MAS O PROGRAMO BUGAVA
     {
-        for(auto particle: particles)
-        {   
-            particle->update(dt);
-            if (particle->isSelected)
-                graphics->drawSelectedNode(particle->getPosition());
-            else
-                graphics->drawFreeNode(particle->getPosition());
+        // Selection mode (Updates and draws dragged nodes with mouse and free nodes)
+        if (inputs.isMouseClicked)
+        {
+            int nSelected = 0;
+            for (auto particle: particles)
+            {
+                collideWithBounds(particle);
+                particle->update(dt);
+
+                float distX = inputs.mousePos.x - particle->getPosition().x*spatialScale;
+                float distY = inputs.mousePos.y - particle->getPosition().y*spatialScale;
+                if (distX*distX + distY*distY <= graphics->circleWhite.getRadius()*spatialScale)
+                {
+                    graphics->drawSelectedNode(particle->getPosition());
+                    particle->isSelected = true;
+                    nSelected++;
+                }
+                else
+                    graphics->drawFreeNode(particle->getPosition());
+            }
+            for (auto particle: particles)
+            {
+                float distX = inputs.mousePos.x - particle->getPosition().x*spatialScale;
+                float distY = inputs.mousePos.y - particle->getPosition().y*spatialScale;
+                if (particle->isSelected)
+                {
+                    particle->applyForce(MathUtils::Vector({distX*1000*timeScale*timeScale, distY*1000*timeScale*timeScale}));
+                    particle->isSelected = false;
+                }
+            }
         }
+        // Normal mode (Updates and draws free nodes)
+        else
+        {
+            for (auto particle: particles)
+            {
+                collideWithBounds(particle);
+                particle->update(dt);
+                graphics->drawFreeNode(particle->getPosition());
+            }
+        }
+        // Draws (and don't update) fixed nodes
         for(auto particle: fixedParticles)
         {   
             graphics->drawFixedNode(particle->getPosition());
@@ -39,24 +73,16 @@ namespace hc
         }
     
         // Sets the bonds between the free particles as an X type grid
-        float k=100000*timeScale*timeScale, c=100*timeScale;
-        for(int i = 0; i < particles_y; i += 1)
+        float k=1000*particles_y*particles_y*timeScale*timeScale, c=1*particles_y*timeScale;
+        for(int i = 0; i < particles_y; i ++)
         {   
-            bonds.push_back(new SimpleBond(particles[2*i], particles[2*i+1], 
-                            vectorMag(vectorSub(particles[2*i]->getPosition(), particles[2*i+1]->getPosition())), k, c));
-            if(i != particles_y-1)
+            bond(particles[2*i], particles[2*i+1], k, c);
+            if(i < particles_y-1)
             {
-                bonds.push_back(new SimpleBond(particles[2*i], particles[2*i+2],
-                                vectorMag(vectorSub(particles[2*i]->getPosition(), particles[2*i+2]->getPosition())), k, c));
-
-                bonds.push_back(new SimpleBond(particles[2*i], particles[2*i+3],
-                                vectorMag(vectorSub(particles[2*i]->getPosition(), particles[2*i+3]->getPosition())), k, c));
-
-                bonds.push_back(new SimpleBond(particles[2*i+1], particles[2*i+2], 
-                                vectorMag(vectorSub(particles[2*i+1]->getPosition(), particles[2*i+2]->getPosition())), k, c));
-
-                bonds.push_back(new SimpleBond(particles[2*i+1], particles[2*i+3], 
-                                vectorMag(vectorSub(particles[2*i+1]->getPosition(), particles[2*i+3]->getPosition())), k, c));
+                bond(particles[2*i], particles[2*i+2], k, c);
+                bond(particles[2*i], particles[2*i+3], k, c);
+                bond(particles[2*i+1], particles[2*i+2], k, c);
+                bond(particles[2*i+1], particles[2*i+3], k, c);
             }
         }
 

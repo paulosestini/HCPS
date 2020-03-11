@@ -19,6 +19,7 @@ namespace hc
 
         rect.setSize(sf::Vector2f(100, 5));
         rect.setFillColor(sf::Color::White);
+        rect.setOrigin(0, 2.5f);
 
         circleWhite.setRadius(circleRadius);
         circleWhite.setFillColor(sf::Color::White);
@@ -53,7 +54,9 @@ namespace hc
             if(event.type == sf::Event::KeyPressed)
             {
                 if(event.key.code == sf::Keyboard::F)
-                    inputs->isForceApplied = !inputs->isForceApplied;
+                    inputs->isForce1Applied = !inputs->isForce1Applied;
+                if(event.key.code == sf::Keyboard::G)
+                    inputs->isForce2Applied = !inputs->isForce2Applied;
             }
         }
     }
@@ -71,6 +74,13 @@ namespace hc
     }
 
     // Functions
+    void GraphicElements::drawForce(double x, double y, float radians)
+    {
+        rect.setPosition(sf::Vector2f(x, y));
+        rect.setRotation(radians);
+        window.draw(rect);
+    }
+
     void GraphicElements::drawBond(MathUtils::Vector force, MathUtils::Vector p1Pos, MathUtils::Vector p2Pos)
     {
         double R, G, B;
