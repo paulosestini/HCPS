@@ -14,6 +14,8 @@ namespace hc
         */
 
         MathUtils::Vector force = calculateForce();
+        
+
 
         p2->applyForce(force);
         p1->applyForce(MathUtils::vectorScale(force, -1));

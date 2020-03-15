@@ -59,6 +59,7 @@ namespace hc
     void Particle::applyForce(MathUtils::Vector force)
     {   
         // Changes velocity according to the force applied
+        
         MathUtils::Vector dAcc = MathUtils::vectorScale(force, 1/mass);
         acc = MathUtils::vectorAdd(acc, dAcc);
     }
@@ -66,6 +67,8 @@ namespace hc
     void Particle::update(double dt)
     {   
         // Updating position
+
+
         accelerate(MathUtils::vectorScale(acc, dt));
         acc = MathUtils::Vector{0.f, 0.f};
         move(MathUtils::vectorScale(vel, dt));

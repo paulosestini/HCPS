@@ -12,7 +12,7 @@ int main()
     // Graphic elements
     hc::GraphicElements* graphics = new hc::GraphicElements(SPATIAL_SCALE, CLOCK_DT);
     // Structure
-    hc::SimpleTower tower = hc::SimpleTower(PARTICLES_Y, Y_SPACING, X_SPACING, TIME_SCALE, false, false);
+    hc::RectangularBody tower = hc::RectangularBody(20, PARTICLES_Y, PARTICLES_X, Y_SPACING, X_SPACING, TIME_SCALE);
 
     while(graphics->isWindowOpen())
     {
@@ -35,7 +35,7 @@ int main()
         // Applying eventual external forces to the tower
         if (inputs.isForce1Applied) // Applying side force lines (force 1, press 1 to activate)
         {
-            for(int i = 11; i < 31; i += 2)
+            for(int i = 1; i < 9; i += 2)
             { 
                 tower.particles[PARTICLES_Y*2-i]->applyForce(MathUtils::Vector({-200*TIME_SCALE*TIME_SCALE, 0}));
 

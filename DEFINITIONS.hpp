@@ -24,17 +24,18 @@
 
 /* --- Structure constants --- */
 
-#define PARTICLES_Y 15 // How many particles of height the tower will have
-#define Y_SPACING 5.f/PARTICLES_Y // Vertical spacing between particles in the tower
-#define X_SPACING 1.f
+#define PARTICLES_Y 20 // How many particles of height the tower will have
+#define PARTICLES_X 20
+#define Y_SPACING 10.f/PARTICLES_Y // Vertical spacing between particles in the tower
+#define X_SPACING 10.f/PARTICLES_X
 #define FIELD_DISSIPATION 0.f
 #define GRAVITY_FORCE MathUtils::Vector{0.f, 9.8f*TIME_SCALE*TIME_SCALE}
 
 /* --- Phisical constants --- */
 
-#define SPATIAL_SCALE 100.f // Pixels per meter
+#define SPATIAL_SCALE 50.f // Pixels per meter
 #define UPDATE_DT 0.0000000000000005f // Simulation's time step (change to alter simulation precision)
-#define TIME_SCALE 0.0005f/UPDATE_DT // Simulation's speed (change to speed up/down the simulation)
+#define TIME_SCALE 0.002f/UPDATE_DT // Simulation's speed (change to speed up/down the simulation)
 #define CLOCK_DT TIME_SCALE*UPDATE_DT/1000000 // Display clock dt (change ONLY for calibration purposes)
 // OBSERVATION: THIS NUMBERS WERE DETERMINED BY EXPERIMENTATION
 // TASK: DETERMINE THIS NUMBERS WITH A BETTER METHOD

@@ -49,13 +49,21 @@ namespace hc
         std::vector<Particle*> fixedParticles;
         std::vector<Particle*> particles;
         std::vector<Bond*> bonds;
+        double mouseForceScale = 1;
     };
 
     class SimpleTower : public StructureElement
     {
     public:
         // Constructor/Destructor
-        SimpleTower(const int particles_y, const double y_spacing, const double x_spacing, double timeScale, bool fixBot, bool fixTop);
+        SimpleTower(const double mass, const int particles_y, const double y_spacing, const double x_spacing, double timeScale, bool fixBot, bool fixTop);
         ~SimpleTower() {}
+    };
+
+    class RectangularBody : public StructureElement
+    {
+    public:
+        RectangularBody(const double mass, const int particles_y, const int particles_x, const double y_spacing, const double x_spacing, double timeScale);
+        ~RectangularBody() {}
     };
 }

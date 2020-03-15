@@ -26,13 +26,13 @@ namespace hc
             float distY = inputs.mousePos.y - particle->getPosition().y*graphics->scale;
             if (distX*distX + distY*distY <= graphics->freeNodeShape.getRadius()*graphics->scale)
             {
-                graphics->drawSelectedNode(particle->getPosition());
+                //graphics->drawSelectedNode(particle->getPosition());
                 particle->isSelected = true;
             }
             else
             {
                 particle->isSelected = false;
-                graphics->drawFreeNode(particle->getPosition());
+                //graphics->drawFreeNode(particle->getPosition());
             }
         }
         for (auto particle: fixedParticles)
@@ -45,7 +45,7 @@ namespace hc
             }
             else
                 particle->isSelected = false;
-            graphics->drawFixedNode(particle->getPosition());
+            //graphics->drawFixedNode(particle->getPosition());
         }
     }
 
@@ -85,7 +85,7 @@ namespace hc
             float distY = inputs.mousePos.y - particle->getPosition().y*graphics->scale;
             if (particle->isSelected)
             {
-                particle->applyForce(MathUtils::Vector({distX*1000*timeScale*timeScale, distY*1000*timeScale*timeScale}));
+                particle->applyForce(MathUtils::Vector({distX*1000*mouseForceScale*timeScale*timeScale, distY*mouseForceScale*1000*timeScale*timeScale}));
                 particle->isSelected = false;
             }
         }
@@ -102,11 +102,11 @@ namespace hc
         {
             stayInBoxBound(particle);
             particle->update(dt);
-            graphics->drawFreeNode(particle->getPosition());
+            //graphics->drawFreeNode(particle->getPosition());
         }
         for(auto particle: fixedParticles)
         {   
-            graphics->drawFixedNode(particle->getPosition());
+            //graphics->drawFixedNode(particle->getPosition());
         }
     }
 
@@ -141,10 +141,10 @@ namespace hc
     }
 
     // PRESET STRUCTURE CONSTRUCTOR
-    SimpleTower::SimpleTower(const int particles_y, const double y_spacing, const double x_spacing, double timeScale, bool fixBot, bool fixTop) : StructureElement()
+    SimpleTower::SimpleTower(const double mass, const int particles_y, const double y_spacing, const double x_spacing, double timeScale, bool fixBot, bool fixTop) : StructureElement()
     {
         // Sets the free particles and their initial pos, vel and mass
-        float mass = 20.f/particles_y;
+        this->mouseForceScale = mass*particles_y*2;
         for(int i = 0; i < particles_y; i++)
         {
             particles.push_back(new Particle(MathUtils::Vector{
@@ -183,6 +183,50 @@ namespace hc
         {
             fix(particles.size()-1);
             fix(particles.size()-1);
+        }
+    }
+
+    RectangularBody::RectangularBody(const double mass, const int particles_y, const int particles_x, const double y_spacing, const double x_spacing, double timeScale) : StructureElement()
+    {
+        // Sets the free particles and their initial pos, vel and mass
+        this->mouseForceScale = mass;
+        for(int i = 0; i < particles_y; i++)
+        {
+            for(int j = 0; j < particles_x; j++)
+            {
+                particles.push_back(new Particle(MathUtils::Vector{
+                (BOUND_BOX_POS_POS_X + BOUND_BOX_POS_WIDTH/2)/SPATIAL_SCALE + (j - particles_x/2)*x_spacing,
+                -(i)*y_spacing},
+                MathUtils::Vector{0.f, 0.f}, mass)
+                );
+            }
+        }
+    
+        // Sets the bonds between the free particles as an X type grid
+        float k=800*particles_y*particles_y*timeScale*timeScale, c=20*particles_y*timeScale;
+
+        for(int i = 0; i < particles_y; i++){
+            for(int j = 0; j < particles_x-1; j++){
+                bond(particles[particles_x*i+j], particles[particles_x*i+j+1], k, c);
+            }
+        }
+
+        for(int i = 0; i < particles_y-1; i++){
+            for(int j = 0; j < particles_x; j++){
+                bond(particles[particles_x*i+j], particles[particles_x*(i+1)+j], k, c);
+            }
+        }
+
+        for(int i = 0; i < particles_y-1; i++){
+            for(int j = 0; j < particles_x-1; j++){
+                bond(particles[particles_x*i+j], particles[particles_x*(i+1)+j+1], k, c);
+            }
+        }
+
+        for(int i = particles_y-1; i > 0; i--){
+            for(int j = 0; j < particles_x-1; j++){
+                bond(particles[particles_x*i+j], particles[particles_x*(i-1)+j+1], k, c);
+            }
         }
     }
 }
