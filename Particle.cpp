@@ -2,7 +2,8 @@
 
 namespace hc
 {
-    // Constructor
+    /* --- Constructor --- */
+    
     Particle::Particle(MathUtils::Vector initPos, MathUtils::Vector initVel, double initMass)
     {
         this->pos = initPos;
@@ -11,7 +12,8 @@ namespace hc
         this->mass = initMass;
     }
 
-    //Accesors
+    /* --- Acessors --- */
+
     MathUtils::Vector Particle::getPosition()
     {
         return pos;
@@ -42,7 +44,18 @@ namespace hc
         vel = MathUtils::vectorAdd(vel, dVel);
     }
 
-    //Functions
+    MathUtils::Vector Particle::getAcceleration()
+    {
+        return acc;
+    }
+
+    void Particle::setAcceleration(MathUtils::Vector newAcc)
+    {
+        acc = newAcc;
+    }
+
+    /* --- Functions --- */
+
     void Particle::applyForce(MathUtils::Vector force)
     {   
         // Changes velocity according to the force applied

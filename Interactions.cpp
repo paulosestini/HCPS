@@ -2,7 +2,8 @@
 
 namespace hc
 {
-    // Functions
+    /* --- Functions --- */
+    
     void SimpleBond::act(double dt)
     {
         /*

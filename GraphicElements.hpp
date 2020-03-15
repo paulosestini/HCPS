@@ -1,5 +1,6 @@
 #pragma once
 
+#include "DEFINITIONS.hpp"
 #include "MathUtils.hpp"
 
 #include <SFML/Graphics.hpp>
@@ -9,8 +10,11 @@ namespace hc
 {
     struct Inputs
     {
-        bool isForceApplied = false;
-        bool isMouseClicked = false;
+        bool isForce1Applied = false;
+        bool isForce2Applied = false;
+        bool isSelectionModeOn = false;
+        bool isUnfixModeOn = false;
+        bool isFixModeOn = false;
         sf::Vector2f mousePos;
     };
 
@@ -18,7 +22,7 @@ namespace hc
     {
     public:
         // Constructor/Destructor
-        GraphicElements(int width, int height, const double circleRadius, const double scale, const double dt);
+        GraphicElements(const double scale, const double dt);
         ~GraphicElements() {}
 
         // Acessors
@@ -28,19 +32,22 @@ namespace hc
         void update(Inputs* inputs);
 
         // Functions
+        void drawForce(double x, double y, float radians);
         void drawBond(MathUtils::Vector force, MathUtils::Vector p1Pos, MathUtils::Vector p2Pos);
         void drawFreeNode(MathUtils::Vector pos);
         void drawFixedNode(MathUtils::Vector pos);
         void drawSelectedNode(MathUtils::Vector pos);
+        void drawBoundaryRect(double top, double left, double width, double height);
         void drawClock();
-        void clear() {window.clear(sf::Color::Black);}
+        void clear() {window.clear(sf::Color::White); window.draw(boundBox);}
         void display();
 
         // Global variables
-        sf::RenderWindow window;  
-        sf::CircleShape circleWhite; // It's used for drawing the free particles
-        sf::CircleShape circleRed; // It's used for drawing the static particles
-        sf::CircleShape circleYellow; // It's used for drawing the selected particles
+        sf::RenderWindow window;
+        sf::RectangleShape boundBox; // It's used to define the box boundaries
+        sf::CircleShape freeNodeShape; // It's used for drawing the free particles
+        sf::CircleShape fixdNodeShape; // It's used for drawing the static particles
+        sf::CircleShape slctNodeShape; // It's used for drawing the selected particles
         sf::RectangleShape rect; // Represents the force being applied
         sf::Font clockFont;
         sf::Text clockText;
@@ -49,7 +56,7 @@ namespace hc
     private:
         // Local variables
         // Clock related variables
-        float colorK = 1e-14;
+        float colorK = 1e-20;
         const double frame_dt = 1000000.f/60.f; // Microseconds
         double virtual_dt, virtualTime = 0.f;
         sf::Clock clock;

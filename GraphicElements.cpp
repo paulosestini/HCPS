@@ -6,36 +6,47 @@
 
 namespace hc
 {
-    // Constructor
-    GraphicElements::GraphicElements(int width, int height, const double circleRadius, const double scale, const double dt)
+    /* --- Constructor --- */
+
+    GraphicElements::GraphicElements(const double scale, const double dt)
     {
-        window.create(sf::VideoMode(width, height), "Simulation", sf::Style::Close | sf::Style::Titlebar);
+        window.create(sf::VideoMode(SCREEN_WIDTH, SCREEN_HEIGHT), "Simulation Box", sf::Style::Close | sf::Style::Titlebar);
         sf::View view = window.getView();
-        view.setCenter(0, height/2.f);
-        window.setView(view);
+        view.setCenter(0, SCREEN_HEIGHT/2.f);
+        //window.setView(view);
 
-        this->scale = scale;
-        virtual_dt = dt*1000000;
+        // The box boundaries definition
+        boundBox.setSize(sf::Vector2f(BOUND_BOX_POS_WIDTH, BOUND_BOX_POS_HEIGHT));
+        boundBox.setFillColor(sf::Color::Black);
+        boundBox.setPosition(BOUND_BOX_POS_POS_X, BOUND_BOX_POS_POS_Y);
 
-        rect.setSize(sf::Vector2f(100, 5));
-        rect.setFillColor(sf::Color::White);
+        rect.setSize(EXTERNAL_FORCE_LINE_SIZE);
+        rect.setFillColor(EXTERNAL_FORCE_LINE_COLOR);
+        rect.setOrigin(0, EXTERNAL_FORCE_LINE_SIZE.y/2.f);
 
-        circleWhite.setRadius(circleRadius);
-        circleWhite.setFillColor(sf::Color::White);
+        freeNodeShape.setRadius(NODE_RADIUS);
+        freeNodeShape.setOrigin(NODE_RADIUS, NODE_RADIUS);
+        freeNodeShape.setFillColor(FREE_NODE_COLOR);
 
-        circleRed.setRadius(circleRadius);
-        circleRed.setFillColor(sf::Color::Red);
+        fixdNodeShape.setRadius(NODE_RADIUS);
+        fixdNodeShape.setOrigin(NODE_RADIUS, NODE_RADIUS);
+        fixdNodeShape.setFillColor(FIXD_NODE_COLOR);
 
-        circleYellow.setRadius(circleRadius);
-        circleYellow.setFillColor(sf::Color::Yellow);
+        slctNodeShape.setRadius(NODE_RADIUS);
+        slctNodeShape.setOrigin(NODE_RADIUS, NODE_RADIUS);
+        slctNodeShape.setFillColor(SLCT_NODE_COLOR);
 
         clockFont.loadFromFile("Fonts/arial.ttf");
         clockText.setFont(clockFont);
-        clockText.setFillColor(sf::Color::White);
-        clockText.move(-width/2.f, 0);
+        clockText.setFillColor(sf::Color::Blue);
+        clockText.move(-SCREEN_WIDTH/2.f, 0);
+
+        this->scale = scale;
+        virtual_dt = dt*1000000;
     }
 
-    // Acessors
+    /* --- Acessors --- */
+
     bool GraphicElements::isWindowOpen()
     {
         return window.isOpen();
@@ -43,6 +54,7 @@ namespace hc
 
     void GraphicElements::pollEvents(Inputs* inputs)
     {
+        inputs->isSelectionModeOn = sf::Mouse::isButtonPressed(sf::Mouse::Button::Left);
         sf::Event event;
         while(window.pollEvent(event))
         {
@@ -52,8 +64,21 @@ namespace hc
             }
             if(event.type == sf::Event::KeyPressed)
             {
+                if(event.key.code == sf::Keyboard::Num1)
+                    inputs->isForce1Applied = !inputs->isForce1Applied;
+                if(event.key.code == sf::Keyboard::Num2)
+                    inputs->isForce2Applied = !inputs->isForce2Applied;
                 if(event.key.code == sf::Keyboard::F)
-                    inputs->isForceApplied = !inputs->isForceApplied;
+                    inputs->isFixModeOn = true;
+                if(event.key.code == sf::Keyboard::U)
+                    inputs->isUnfixModeOn = true;
+            }
+            if (event.type == sf::Event::KeyReleased)
+            {
+                if(event.key.code == sf::Keyboard::F)
+                    inputs->isFixModeOn = false;
+                if(event.key.code == sf::Keyboard::U)
+                    inputs->isUnfixModeOn = false;
             }
         }
     }
@@ -61,7 +86,6 @@ namespace hc
     void GraphicElements::updateMousePos(Inputs* inputs)
     {
         inputs->mousePos = window.mapPixelToCoords((sf::Mouse::getPosition(window)));
-        inputs->isMouseClicked = sf::Mouse::isButtonPressed(sf::Mouse::Button::Left);
     }
 
     void GraphicElements::update(Inputs* inputs)
@@ -70,7 +94,15 @@ namespace hc
         updateMousePos(inputs);
     }
 
-    // Functions
+    /* --- Functions --- */
+
+    void GraphicElements::drawForce(double x, double y, float radians)
+    {
+        rect.setPosition(sf::Vector2f(x*scale, y*scale));
+        rect.setRotation(radians);
+        window.draw(rect);
+    }
+
     void GraphicElements::drawBond(MathUtils::Vector force, MathUtils::Vector p1Pos, MathUtils::Vector p2Pos)
     {
         double R, G, B;
@@ -89,10 +121,10 @@ namespace hc
         sf::Color color(R, G, B);
 
         sf::Vertex line[2] = {sf::Vector2f(0, 0), sf::Vector2f(0, 0)}; // It's used for drawing the lines
-        line[0].position = sf::Vector2f(p1Pos.x*scale+circleWhite.getRadius(), 
-                                        p1Pos.y*scale+circleWhite.getRadius());
-        line[1].position = sf::Vector2f(p2Pos.x*scale+circleWhite.getRadius(), 
-                                        p2Pos.y*scale+circleWhite.getRadius());
+        line[0].position = sf::Vector2f(p1Pos.x*scale, 
+                                        p1Pos.y*scale);
+        line[1].position = sf::Vector2f(p2Pos.x*scale, 
+                                        p2Pos.y*scale);
         line[0].color = color;
         line[1].color = color;
         window.draw(line, 2, sf::Lines);  
@@ -100,20 +132,20 @@ namespace hc
 
     void GraphicElements::drawFreeNode(MathUtils::Vector pos)
     {
-        circleWhite.setPosition(sf::Vector2f(pos.x*scale, pos.y*scale));
-        window.draw(circleWhite);
+        freeNodeShape.setPosition(sf::Vector2f(pos.x*scale, pos.y*scale));
+        window.draw(freeNodeShape);
     }
 
     void GraphicElements::drawFixedNode(MathUtils::Vector pos)
     {
-        circleRed.setPosition(sf::Vector2f(pos.x*scale, pos.y*scale));
-        window.draw(circleRed);
+        fixdNodeShape.setPosition(sf::Vector2f(pos.x*scale, pos.y*scale));
+        window.draw(fixdNodeShape);
     }
 
     void GraphicElements::drawSelectedNode(MathUtils::Vector pos)
     {
-        circleYellow.setPosition(sf::Vector2f(pos.x*scale, pos.y*scale));
-        window.draw(circleYellow);
+        slctNodeShape.setPosition(sf::Vector2f(pos.x*scale, pos.y*scale));
+        window.draw(slctNodeShape);
     }
 
     void GraphicElements::drawClock()
