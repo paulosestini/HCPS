@@ -1,5 +1,6 @@
 #pragma once
 
+#include "DEFINITIONS.hpp"
 #include "MathUtils.hpp"
 
 #include <SFML/Graphics.hpp>
@@ -11,7 +12,9 @@ namespace hc
     {
         bool isForce1Applied = false;
         bool isForce2Applied = false;
-        bool isMouseClicked = false;
+        bool isSelectionModeOn = false;
+        bool isUnfixModeOn = false;
+        bool isFixModeOn = false;
         sf::Vector2f mousePos;
     };
 
@@ -19,7 +22,7 @@ namespace hc
     {
     public:
         // Constructor/Destructor
-        GraphicElements(int width, int height, const double circleRadius, const double scale, const double dt);
+        GraphicElements(const double scale, const double dt);
         ~GraphicElements() {}
 
         // Acessors
@@ -34,15 +37,17 @@ namespace hc
         void drawFreeNode(MathUtils::Vector pos);
         void drawFixedNode(MathUtils::Vector pos);
         void drawSelectedNode(MathUtils::Vector pos);
+        void drawBoundaryRect(double top, double left, double width, double height);
         void drawClock();
-        void clear() {window.clear(sf::Color::Black);}
+        void clear() {window.clear(sf::Color::White); window.draw(boundBox);}
         void display();
 
         // Global variables
-        sf::RenderWindow window;  
-        sf::CircleShape circleWhite; // It's used for drawing the free particles
-        sf::CircleShape circleRed; // It's used for drawing the static particles
-        sf::CircleShape circleYellow; // It's used for drawing the selected particles
+        sf::RenderWindow window;
+        sf::RectangleShape boundBox; // It's used to define the box boundaries
+        sf::CircleShape freeNodeShape; // It's used for drawing the free particles
+        sf::CircleShape fixdNodeShape; // It's used for drawing the static particles
+        sf::CircleShape slctNodeShape; // It's used for drawing the selected particles
         sf::RectangleShape rect; // Represents the force being applied
         sf::Font clockFont;
         sf::Text clockText;
