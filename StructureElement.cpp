@@ -2,187 +2,249 @@
 
 namespace hc
 {
-    /* --- Functions --- */
+    /* --- Bond forces related functions --- */
 
-    // BONDS ACTION AND DRAWING
-    void StructureElement::act(hc::GraphicElements *graphics, double dt) //OBSERVACAO: QUERIA DEFINIR ESSA FUNCAO NA CLASSE BOND, MAS O PROGRAMO BUGAVA
+    // BONDS ACTION, BREAKING AND DRAWING
+
+    void StructureElement::bondBreaking(int i)
     {
-        for(auto bond: bonds)
+        if (bonds[i]->isBroken())
         {
-            bond->act(dt);
-            graphics->drawBond(bond->calculatedForce, bond->p1->getPosition(), bond->p2->getPosition());
+            bonds.erase(bonds.begin() + i);
         }
     }
 
-    // PARTICLES SELECTION (select particles inside a certain radius around the mouse)
-    void StructureElement::selectParticles(hc::GraphicElements *graphics, hc::Inputs inputs, double dt)
+    void StructureElement::act(hc::GraphicElements *graphics, double dt)
     {
-        for (auto particle: particles)
+        for(int i=0; i<bonds.size(); i++)
         {
-            stayInBoxBound(particle);
-            particle->update(dt);
-
-            float distX = inputs.mousePos.x - particle->getPosition().x*graphics->scale;
-            float distY = inputs.mousePos.y - particle->getPosition().y*graphics->scale;
-            if (distX*distX + distY*distY <= graphics->freeNodeShape.getRadius()*graphics->scale)
-            {
-                graphics->drawSelectedNode(particle->getPosition());
-                particle->isSelected = true;
-            }
-            else
-            {
-                particle->isSelected = false;
-                graphics->drawFreeNode(particle->getPosition());
-            }
+            bonds[i]->act(dt);
+            graphics->drawBond(bonds[i]->calculatedForce, bonds[i]->p1->getPosition(), bonds[i]->p2->getPosition(), 255);
+            bondBreaking(i);
         }
+    }
+
+    /* --- Selection related functions --- */
+
+    // PARTICLES SELECTION (select particles inside a certain radius around the mouse)
+    bool StructureElement::selectAParticle(hc::Inputs inputs, double dt)
+    {
+        // OBS:There is a priority for selecting fixed particles
         for (auto particle: fixedParticles)
         {
-            float distX = inputs.mousePos.x - particle->getPosition().x*graphics->scale;
-            float distY = inputs.mousePos.y - particle->getPosition().y*graphics->scale;
-            if (distX*distX + distY*distY <= graphics->freeNodeShape.getRadius()*graphics->scale)
+            float distX = inputs.mousePos.x - particle->getPosition().x;
+            float distY = inputs.mousePos.y - particle->getPosition().y;
+            if (distX*distX + distY*distY <= NODE_SELECTION_RADIUS)
             {
-                particle->isSelected = true;
+                selectedParticle = particle;
+                alreadySelected = true;
+                return true;
             }
-            else
-                particle->isSelected = false;
-            graphics->drawFixedNode(particle->getPosition());
         }
+        for (auto particle: particles)
+        {
+            float distX = inputs.mousePos.x - particle->getPosition().x;
+            float distY = inputs.mousePos.y - particle->getPosition().y;
+            if (distX*distX + distY*distY <= NODE_SELECTION_RADIUS)
+            {
+                selectedParticle = particle;
+                alreadySelected = true;
+                return false;
+            }
+        }
+        alreadySelected = false;
     }
 
     // SELECTED PARTICLES WILL BE FIXED
     void StructureElement::fixMode()
     {
-        for (int i=0; i<particles.size(); i++)
-        {
-            if (particles[i]->isSelected)
-            {
-                particles[i]->isSelected = false;
-                fix(i);
-            }
-        }
+        selectedParticle->setAcceleration(MathUtils::Vector{0,0});
+        selectedParticle->setVelocity(MathUtils::Vector{0,0});
+        fix(selectedParticle);
     }
 
     // SELECTED PARTICLES WILL BE UNFIXED
     void StructureElement::unfixMode()
     {
-        for (int i=0; i<fixedParticles.size(); i++)
-        {
-            if (fixedParticles[i]->isSelected)
-            {
-                fixedParticles[i]->setAcceleration(MathUtils::Vector{0,0});
-                fixedParticles[i]->isSelected = false;
-                unfix(i);
-            }
-        }
+        selectedParticle->setAcceleration(MathUtils::Vector{0,0});
+        selectedParticle->setVelocity(MathUtils::Vector{0,0});
+        unfix(selectedParticle);
     }
 
     // MOUSE APPLIES FORCE TO SELECTED PARTICLES
-    void StructureElement::mouseDragMode(hc::GraphicElements *graphics, hc::Inputs inputs, const double timeScale)
+    void StructureElement::mouseDragMode(hc::Inputs inputs, double dt)
     {
-        for (auto particle: particles)
+        MathUtils::Vector dist{
+        inputs.mousePos.x - selectedParticle->getPosition().x,
+        inputs.mousePos.y - selectedParticle->getPosition().y
+        };
+
+        selectedParticle->setVelocity(MathUtils::vectorScale(dist, 1/dt));
+    }
+
+    /* --- Collision forces related functions --- */
+
+    void StructureElement::particlesCollision(GraphicElements *graphics)
+    {
+        for (auto p1=particles.begin(); p1!=particles.end(); ++p1)
         {
-            float distX = inputs.mousePos.x - particle->getPosition().x*graphics->scale;
-            float distY = inputs.mousePos.y - particle->getPosition().y*graphics->scale;
-            if (particle->isSelected)
+            for (auto p2=p1+1; p2!=particles.end(); ++p2)
             {
-                particle->applyForce(MathUtils::Vector({distX*1000*timeScale*timeScale, distY*1000*timeScale*timeScale}));
-                particle->isSelected = false;
+                MathUtils::Vector r = MathUtils::vectorSub((*p1)->getPosition(),(*p2)->getPosition());
+                if (MathUtils::vectorMag(r) < (*p1)->getRadius() + (*p2)->getRadius())
+                {
+                    MathUtils::Vector v = MathUtils::vectorSub((*p1)->getVelocity(), (*p2)->getVelocity());
+
+                    double r_mag = MathUtils::vectorMag(r);
+                    MathUtils::Vector r_hat = MathUtils::normalize(r);
+                    MathUtils::Vector equilibrium_r = MathUtils::vectorScale(r_hat, (*p1)->getRadius() + (*p2)->getRadius());
+
+                    MathUtils::Vector axial_v = MathUtils::vectorProj(v,r);
+                    
+                    MathUtils::Vector F_el = MathUtils::vectorScale(vectorSub(r, equilibrium_r), COLLISION_K_CONSTANT);
+                    MathUtils::Vector F_at = MathUtils::vectorScale(axial_v, COLLISION_C_CONSTANT);
+                    MathUtils::Vector calculatedForce = MathUtils::vectorAdd(F_el, F_at);
+
+                    (*p2)->applyForce(calculatedForce);
+                    (*p1)->applyForce(MathUtils::vectorScale(calculatedForce, -1));
+                    graphics->drawBond(calculatedForce, (*p1)->getPosition(), (*p2)->getPosition(), 70);
+                }
             }
-        }
-        for (auto particle: fixedParticles)
-        {
-            particle->isSelected = false;
         }
     }
 
-    // FREE FROM INPUTS SIMULATION
-    void StructureElement::notSelectedMode(hc::GraphicElements *graphics, double dt)
+    /* --- External forces --- */
+
+    // GRAVITY AND FIELD DISSIPATION
+    void StructureElement::applyExtForces(double dt)
     {
+        for(auto particle: particles)
+        {
+            // Some external dissipation of energy
+            particle->applyForce(MathUtils::vectorScale(MathUtils::vectorScale(particle->getVelocity(), MathUtils::vectorMag(particle->getVelocity())), -FIELD_DISSIPATION));
+
+            // Gravity aplication
+            particle->accelerate(MathUtils::vectorScale(GRAVITY_FORCE, dt));
+        }
+    }
+
+    /* --- Main update function --- */
+
+    // PARTICLES CONDITIONAL UPDATE AND DRAWING
+    void StructureElement::update(hc::GraphicElements *graphics, hc::Inputs inputs, double dt) //OBSERVACAO: QUERIA DEFINIR ESSA FUNCAO NA CLASSE BOND, MAS O PROGRAMO BUGAVA
+    {
+        // Updating bonds and drawing the connection lines
+        act(graphics, dt);
+
+        // Applying selection input tools
+        if (inputs.isSelectionModeOn)
+        {
+            if (!alreadySelected)
+            {
+                isSelectedFixed = selectAParticle(inputs, dt);
+            }
+            if (alreadySelected)
+            {
+                // Selected particle will be fixed (Activate with mouseclick + F)
+                if (inputs.isFixModeOn && !isSelectedFixed)
+                {
+                    fixMode();
+                    alreadySelected = false;
+                }
+                // Selected particle will be unfixed (Activate with mouseclick + U)
+                else if (inputs.isUnfixModeOn && isSelectedFixed)
+                {
+                    unfixMode();
+                    alreadySelected = false;
+                }
+                // Selected particle will be dragged by the mouse (Activate with just the mouseclick)
+                else
+                {
+                    mouseDragMode(inputs, dt);
+                }
+            }
+        }
+        else
+            alreadySelected = false;
+
+        // Applying the very dynamic interactions
+        particlesCollision(graphics);
+        
+        // Applying natural external forces
+        applyExtForces(dt);
+        
+        // Updating and drawing the particles
         for (auto particle: particles)
         {
             stayInBoxBound(particle);
             particle->update(dt);
             graphics->drawFreeNode(particle->getPosition());
         }
+        if (alreadySelected)
+            graphics->drawSelectedNode(selectedParticle->getPosition());
         for(auto particle: fixedParticles)
-        {   
+        {
             graphics->drawFixedNode(particle->getPosition());
         }
     }
 
-    // PARTICLES CONDITIONAL UPDATE AND DRAWING
-    void StructureElement::update(hc::GraphicElements *graphics, hc::Inputs inputs, const double timeScale, double dt) //OBSERVACAO: QUERIA DEFINIR ESSA FUNCAO NA CLASSE BOND, MAS O PROGRAMO BUGAVA
+    // PRESET STRUCTURE BUILDERS
+
+    void StructureElement::build_RectShape_XGrid(const double density, const int particles_y, const int particles_x, const double y_spacing, const double x_spacing, double collisionRadius)
     {
-        // Normal mode (Updates and draws nodes)
-        if (!inputs.isSelectionModeOn)
+        double mass = density * y_spacing * x_spacing;
+        // Sets the free particles and their initial pos, vel and mass
+        for(int i = 0; i < particles_y; i++)
         {
-            notSelectedMode(graphics, dt);
+            for(int j = 0; j < particles_x; j++)
+            {
+                particles.push_back(new Particle(MathUtils::Vector{
+                (BOUND_BOX_POS_POS_X + BOUND_BOX_POS_WIDTH/2) + (j - particles_x/2)*x_spacing,
+                -(i)*y_spacing
+                }, MathUtils::Vector{0.f, 0.f}, mass, collisionRadius));
+            }
         }
-        // Selection mode (Same as normal mode, but some particles are in selected condition)
-        else // (Activate with mouseclick)
-        {
-            selectParticles(graphics, inputs, dt);
-            // Selected condition = fix the particle (Activate with mouseclick + F)
-            if (inputs.isFixModeOn)
-            {
-                fixMode();
+    
+        // Sets the bonds between the free particles as an X type grid
+        for(int i = 0; i < particles_y; i++){
+            for(int j = 0; j < particles_x-1; j++){
+                bond(particles[particles_x*i+j], particles[particles_x*i+j+1], BLOCK_MAX_DIST_FACTOR_CONSTANT, STRUCTURE_K_CONSTANT, STRUCTURE_C_CONSTANT);
             }
-            // Selected condition = unfix the particle (Activate with mouseclick + U)
-            else if (inputs.isUnfixModeOn)
-            {
-                unfixMode();
+        }
+        for(int i = 0; i < particles_y-1; i++){
+            for(int j = 0; j < particles_x; j++){
+                bond(particles[particles_x*i+j], particles[particles_x*(i+1)+j], BLOCK_MAX_DIST_FACTOR_CONSTANT, STRUCTURE_K_CONSTANT, STRUCTURE_C_CONSTANT);
             }
-            // Selected condition = drag particle with mouse (Activate with just the mouseclick)
-            else
-            {
-                mouseDragMode(graphics, inputs, timeScale);
+        }
+        for(int i = 0; i < particles_y-1; i++){
+            for(int j = 0; j < particles_x-1; j++){
+                bond(particles[particles_x*i+j], particles[particles_x*(i+1)+j+1], BLOCK_MAX_DIST_FACTOR_CONSTANT, STRUCTURE_K_CONSTANT, STRUCTURE_C_CONSTANT);
+            }
+        }
+        for(int i = particles_y-1; i > 0; i--){
+            for(int j = 0; j < particles_x-1; j++){
+                bond(particles[particles_x*i+j], particles[particles_x*(i-1)+j+1], BLOCK_MAX_DIST_FACTOR_CONSTANT, STRUCTURE_K_CONSTANT, STRUCTURE_C_CONSTANT);
             }
         }
     }
 
-    // PRESET STRUCTURE CONSTRUCTOR
-    SimpleTower::SimpleTower(const int particles_y, const double y_spacing, const double x_spacing, double timeScale, bool fixBot, bool fixTop) : StructureElement()
+    void StructureElement::build_Fluid(const double density, int particles_y, int particles_x, double collisionRadius)
     {
-        // Sets the free particles and their initial pos, vel and mass
-        float mass = 20.f/particles_y;
+        double mass = density * collisionRadius*2 * collisionRadius*2;
         for(int i = 0; i < particles_y; i++)
         {
-            particles.push_back(new Particle(MathUtils::Vector{
-                (BOUND_BOX_POS_POS_X + BOUND_BOX_POS_WIDTH/2)/SPATIAL_SCALE - x_spacing/2.f,
-                -(i+0)*y_spacing},
-                MathUtils::Vector{0.f, 0.f}, mass)
-            );
-            particles.push_back(new Particle(MathUtils::Vector{
-                (BOUND_BOX_POS_POS_X + BOUND_BOX_POS_WIDTH/2)/SPATIAL_SCALE + x_spacing/2.f,
-                -(i+0)*y_spacing},
-                MathUtils::Vector{0.f, 0.f}, mass)
-            );
-        }
-    
-        // Sets the bonds between the free particles as an X type grid
-        float k=400*particles_y*particles_y*timeScale*timeScale, c=20*particles_y*timeScale;
-        for(int i = 0; i < particles_y; i ++)
-        {   
-            bond(particles[2*i], particles[2*i+1], k, c);
-            if(i < particles_y-1)
+            for(int j = 0; j < particles_x; j++)
             {
-                bond(particles[2*i+0], particles[2*i+2], k, c);
-                bond(particles[2*i+0], particles[2*i+3], k, c);
-                bond(particles[2*i+1], particles[2*i+2], k, c);
-                bond(particles[2*i+1], particles[2*i+3], k, c);
+                particles.push_back(new Particle(MathUtils::Vector{
+                (BOUND_BOX_POS_POS_X + BOUND_BOX_POS_WIDTH/2) + (j - particles_x/2)*2*collisionRadius*0.99,
+                BOUND_BOX_POS_POS_Y + BOUND_BOX_POS_HEIGHT-(i+1)*2*collisionRadius
+                }, MathUtils::Vector{0.f, 0.f}, mass, collisionRadius));
             }
         }
+    }
 
-        // Sets (if true) the bottom and top particles as fixed
-        if (fixBot)
-        {
-            fix(0);
-            fix(0);
-        }
-        if (fixTop)
-        {
-            fix(particles.size()-1);
-            fix(particles.size()-1);
-        }
+    void StructureElement::build_Box()
+    {
+        
     }
 }
