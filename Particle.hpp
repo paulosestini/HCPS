@@ -9,7 +9,7 @@ namespace hc
     {
     public:
         // Constructor/Destructor
-        Particle(MathUtils::Vector initPos, MathUtils::Vector initVel, double initMass);
+        Particle(MathUtils::Vector initPos, MathUtils::Vector initVel, double initMass, double initRad);
         ~Particle() {}
 
         //Accesors
@@ -25,11 +25,12 @@ namespace hc
         void setAcceleration(MathUtils::Vector newAcc);
         void applyForce(MathUtils::Vector force);
 
+        double getMass();
+
+        double getRadius();
+
         //Functions
         void update(double dt); // Updates the particles position with timestep dt
-
-        // Global variables
-        bool isSelected = false;
 
     private:
         // Local variables
@@ -37,5 +38,6 @@ namespace hc
         MathUtils::Vector vel;
         MathUtils::Vector acc;
         double mass;
+        double rad;
     };
 }

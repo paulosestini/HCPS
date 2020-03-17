@@ -10,8 +10,6 @@ namespace hc
 {
     struct Inputs
     {
-        bool isForce1Applied = false;
-        bool isForce2Applied = false;
         bool isSelectionModeOn = false;
         bool isUnfixModeOn = false;
         bool isFixModeOn = false;
@@ -32,8 +30,7 @@ namespace hc
         void update(Inputs* inputs);
 
         // Functions
-        void drawForce(double x, double y, float radians);
-        void drawBond(MathUtils::Vector force, MathUtils::Vector p1Pos, MathUtils::Vector p2Pos);
+        void drawBond(MathUtils::Vector force, MathUtils::Vector p1Pos, MathUtils::Vector p2Pos, int alpha);
         void drawFreeNode(MathUtils::Vector pos);
         void drawFixedNode(MathUtils::Vector pos);
         void drawSelectedNode(MathUtils::Vector pos);
@@ -44,11 +41,10 @@ namespace hc
 
         // Global variables
         sf::RenderWindow window;
-        sf::RectangleShape boundBox; // It's used to define the box boundaries
+        sf::RectangleShape boundBox;   // It's used to define the box boundaries
         sf::CircleShape freeNodeShape; // It's used for drawing the free particles
         sf::CircleShape fixdNodeShape; // It's used for drawing the static particles
         sf::CircleShape slctNodeShape; // It's used for drawing the selected particles
-        sf::RectangleShape rect; // Represents the force being applied
         sf::Font clockFont;
         sf::Text clockText;
         double scale;

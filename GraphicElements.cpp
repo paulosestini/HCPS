@@ -10,36 +10,31 @@ namespace hc
 
     GraphicElements::GraphicElements(const double scale, const double dt)
     {
-        window.create(sf::VideoMode(SCREEN_WIDTH, SCREEN_HEIGHT), "Simulation Box", sf::Style::Close | sf::Style::Titlebar);
+        window.create(sf::VideoMode(SCREEN_WIDTH*SPATIAL_SCALE, SCREEN_HEIGHT*SPATIAL_SCALE), "Simulation Box", sf::Style::Close | sf::Style::Titlebar);
         sf::View view = window.getView();
-        view.setCenter(0, SCREEN_HEIGHT/2.f);
+        view.setCenter(0, SCREEN_HEIGHT*SPATIAL_SCALE/2.f);
         //window.setView(view);
 
         // The box boundaries definition
-        boundBox.setSize(sf::Vector2f(BOUND_BOX_POS_WIDTH, BOUND_BOX_POS_HEIGHT));
+        boundBox.setSize(sf::Vector2f(BOUND_BOX_POS_WIDTH*SPATIAL_SCALE, BOUND_BOX_POS_HEIGHT*SPATIAL_SCALE));
         boundBox.setFillColor(sf::Color::Black);
-        boundBox.setPosition(BOUND_BOX_POS_POS_X, BOUND_BOX_POS_POS_Y);
+        boundBox.setPosition(BOUND_BOX_POS_POS_X*SPATIAL_SCALE, BOUND_BOX_POS_POS_Y*SPATIAL_SCALE);
 
-        rect.setSize(EXTERNAL_FORCE_LINE_SIZE);
-        rect.setFillColor(EXTERNAL_FORCE_LINE_COLOR);
-        rect.setOrigin(0, EXTERNAL_FORCE_LINE_SIZE.y/2.f);
-
-        freeNodeShape.setRadius(NODE_RADIUS);
-        freeNodeShape.setOrigin(NODE_RADIUS, NODE_RADIUS);
+        freeNodeShape.setRadius(NODE_SHAPE_RADIUS);
+        freeNodeShape.setOrigin(NODE_SHAPE_RADIUS, NODE_SHAPE_RADIUS);
         freeNodeShape.setFillColor(FREE_NODE_COLOR);
 
-        fixdNodeShape.setRadius(NODE_RADIUS);
-        fixdNodeShape.setOrigin(NODE_RADIUS, NODE_RADIUS);
+        fixdNodeShape.setRadius(NODE_SELECTION_RADIUS*SPATIAL_SCALE);
+        fixdNodeShape.setOrigin(NODE_SELECTION_RADIUS*SPATIAL_SCALE, NODE_SELECTION_RADIUS*SPATIAL_SCALE);
         fixdNodeShape.setFillColor(FIXD_NODE_COLOR);
 
-        slctNodeShape.setRadius(NODE_RADIUS);
-        slctNodeShape.setOrigin(NODE_RADIUS, NODE_RADIUS);
+        slctNodeShape.setRadius(NODE_SELECTION_RADIUS*SPATIAL_SCALE);
+        slctNodeShape.setOrigin(NODE_SELECTION_RADIUS*SPATIAL_SCALE, NODE_SELECTION_RADIUS*SPATIAL_SCALE);
         slctNodeShape.setFillColor(SLCT_NODE_COLOR);
 
         clockFont.loadFromFile("Fonts/arial.ttf");
         clockText.setFont(clockFont);
         clockText.setFillColor(sf::Color::Blue);
-        clockText.move(-SCREEN_WIDTH/2.f, 0);
 
         this->scale = scale;
         virtual_dt = dt*1000000;
@@ -64,10 +59,6 @@ namespace hc
             }
             if(event.type == sf::Event::KeyPressed)
             {
-                if(event.key.code == sf::Keyboard::Num1)
-                    inputs->isForce1Applied = !inputs->isForce1Applied;
-                if(event.key.code == sf::Keyboard::Num2)
-                    inputs->isForce2Applied = !inputs->isForce2Applied;
                 if(event.key.code == sf::Keyboard::F)
                     inputs->isFixModeOn = true;
                 if(event.key.code == sf::Keyboard::U)
@@ -85,7 +76,7 @@ namespace hc
 
     void GraphicElements::updateMousePos(Inputs* inputs)
     {
-        inputs->mousePos = window.mapPixelToCoords((sf::Mouse::getPosition(window)));
+        inputs->mousePos = window.mapPixelToCoords((sf::Mouse::getPosition(window)))/SPATIAL_SCALE;
     }
 
     void GraphicElements::update(Inputs* inputs)
@@ -96,14 +87,7 @@ namespace hc
 
     /* --- Functions --- */
 
-    void GraphicElements::drawForce(double x, double y, float radians)
-    {
-        rect.setPosition(sf::Vector2f(x*scale, y*scale));
-        rect.setRotation(radians);
-        window.draw(rect);
-    }
-
-    void GraphicElements::drawBond(MathUtils::Vector force, MathUtils::Vector p1Pos, MathUtils::Vector p2Pos)
+    void GraphicElements::drawBond(MathUtils::Vector force, MathUtils::Vector p1Pos, MathUtils::Vector p2Pos, int alpha)
     {
         double R, G, B;
         if(vectorDot(force, vectorSub(p2Pos, p1Pos)) > 0)
@@ -118,7 +102,7 @@ namespace hc
             G = 255*(1-std::tanh(colorK*vectorMag(force)));
             B = 255;
         }
-        sf::Color color(R, G, B);
+        sf::Color color(R, G, B, alpha);
 
         sf::Vertex line[2] = {sf::Vector2f(0, 0), sf::Vector2f(0, 0)}; // It's used for drawing the lines
         line[0].position = sf::Vector2f(p1Pos.x*scale, 
