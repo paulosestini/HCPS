@@ -12,13 +12,6 @@
 
 namespace hc
 {
-    struct StructData
-    {
-        double totalMass = 1;
-        MathUtils::Vector shape = MathUtils::Vector{1.f, 1.f};
-        MathUtils::Vector position = MathUtils::Vector{0.f, 0.f};
-    };
-
     class StructureElement
     {
     public:
@@ -35,10 +28,8 @@ namespace hc
         }
         void bond(Particle* p1, Particle *p2, double maxDistFactor, float k, float c)
         {
-            bonds.push_back(new LimitedBond(p1, p2, 
+            bonds.push_back(new LimitedBond(p1, p2,
                     MathUtils::vectorMag(MathUtils::vectorSub(p1->getPosition(), p2->getPosition())), maxDistFactor, k, c));
-            // bonds.push_back(new SimpleBond(p1, p2, 
-            //         MathUtils::vectorMag(MathUtils::vectorSub(p1->getPosition(), p2->getPosition())), k, c));
         }
 
         // Constructor/Destructor
@@ -54,15 +45,19 @@ namespace hc
         void fixMode();
         void unfixMode();
         void mouseDragMode(hc::Inputs inputs, double dt);
+        void selectAndAct(hc::Inputs inputs, double dt);
 
         // Very dynamic forces related functions
-        void particlesCollision(GraphicElements *graphics);
+        void particlesCollision(GraphicElements *graphics, double collisionK, double collisionC);
 
         // External forces
         void applyExtForces(double dt);
 
         // Main update function
-        void update(hc::GraphicElements *graphics, hc::Inputs inputs, double dt);
+        void update(hc::GraphicElements *graphics, hc::Inputs inputs, double collisionK, double collisionC, double dt);
+
+        // Interactions between structures
+        static void interactStructures(StructureElement *str1, StructureElement *str2, GraphicElements *graphics, double collisionK, double collisionC);
 
         // Global Objects (Particles and Interactions)
         std::vector<Particle*> fixedParticles;
@@ -75,8 +70,8 @@ namespace hc
         Particle* selectedParticle;
 
         // PRESET STRUCTURES
-        void build_RectShape_XGrid(const double density, const int particles_y, const int particles_x, const double y_spacing, const double x_spacing, double collisionRadius);
-        void build_Fluid(double density, int particles_y, int particles_x, double collisionRadius);
+        void build_RectShape_XGrid(const double mass, const double hardness, const double steadiness, double width, double height, double dx, double dy, const double collisionRadius, const double maxDistFactor, MathUtils::Vector initialPos);
+        void build_Fluid(double density, double width, double height, double collisionRadius, MathUtils::Vector initialPos);
         void build_Box();
     };
 

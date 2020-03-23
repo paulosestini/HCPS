@@ -16,9 +16,9 @@ namespace hc
         //window.setView(view);
 
         // The box boundaries definition
-        boundBox.setSize(sf::Vector2f(BOUND_BOX_POS_WIDTH*SPATIAL_SCALE, BOUND_BOX_POS_HEIGHT*SPATIAL_SCALE));
+        boundBox.setSize(sf::Vector2f(BOUND_BOX_WIDTH*SPATIAL_SCALE, BOUND_BOX_HEIGHT*SPATIAL_SCALE));
         boundBox.setFillColor(sf::Color::Black);
-        boundBox.setPosition(BOUND_BOX_POS_POS_X*SPATIAL_SCALE, BOUND_BOX_POS_POS_Y*SPATIAL_SCALE);
+        boundBox.setPosition(BOUND_BOX_POS_X*SPATIAL_SCALE, BOUND_BOX_POS_Y*SPATIAL_SCALE);
 
         freeNodeShape.setRadius(NODE_SHAPE_RADIUS);
         freeNodeShape.setOrigin(NODE_SHAPE_RADIUS, NODE_SHAPE_RADIUS);
