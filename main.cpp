@@ -1,9 +1,12 @@
 #include <iostream>
 
-#include "StructureElement.hpp"
-#include "GraphicElements.hpp"
-#include "MathUtils.hpp"
 #include "DEFINITIONS.hpp"
+#include "Interface/Renderer.hpp"
+#include "Interface/InputHandler.hpp"
+#include "Utils/MathUtils.hpp"
+
+#include "Presets/RectShape_XGrid.hpp"
+#include "Presets/Fluid.hpp"
 
 int main()
 {
@@ -27,50 +30,81 @@ int main()
 
    /*
    * TASKS for future versions:
-   * 1) Make the particle's size and collor atributes os each structure, not global atributes;
+   * 1) MAKE THE PARTICLE'S SIZE AND COLLOR ATRIBUTES OS EACH STRUCTURE, NOT GLOBAL ATRIBUTES;
    * 2) Recheck all units relationships in the DLC file (exs: how changing the block's mass change it's hardness; how changing the fluid's damping change it's density.);
    * 3) Being able to turn on and off the particles collisions inside one structure;
    * 4) ...
    */
 
-    // Inputs
-    hc::Inputs inputs;
-    // Graphic elements
-    hc::GraphicElements* graphics = new hc::GraphicElements(SPATIAL_SCALE, CLOCK_DT);
+    // User inputs handler
+        hc::InputHandler* inputHandler = new hc::InputHandler();
 
-    // Structures
-    hc::StructureElement block = hc::StructureElement();
-    block.build_RectShape_XGrid(JELLO_BLOCK);
+    // Screen renderer
+        hc::Renderer* graphics = new hc::Renderer(SPATIAL_SCALE, CLOCK_DT);
 
-    hc::StructureElement fluid = hc::StructureElement();
-    fluid.build_Fluid(OIL_FLUID);
+    // Particle systems
+        hc::HardBlock block(1.0/2); // Try it with different presets
+            /* Edit block's parematers between here */
+        block.build(0);
+        
+        hc::Water fluid; // Try it with different presets
+            /* Edit fluid's parematers between here */
+            fluid.collisionRadius /= 2;
+        fluid.build(1);
 
+    // Particle shapes
+        sf::CircleShape freeBlock1Node = sf::CircleShape(1);
+        freeBlock1Node.setOrigin(freeBlock1Node.getRadius(), freeBlock1Node.getRadius());
+        freeBlock1Node.setFillColor(sf::Color::White);
+
+        sf::CircleShape freeFluid1Node = sf::CircleShape(2);
+        freeFluid1Node.setOrigin(freeFluid1Node.getRadius(), freeFluid1Node.getRadius());
+        freeFluid1Node.setFillColor(sf::Color::Blue);
+
+        sf::CircleShape slctNode = sf::CircleShape(3);
+        slctNode.setOrigin(slctNode.getRadius(), slctNode.getRadius());
+        slctNode.setFillColor(sf::Color::Yellow);
+        
+        sf::CircleShape fixdNode = sf::CircleShape(3);
+        fixdNode.setOrigin(fixdNode.getRadius(), fixdNode.getRadius());
+        fixdNode.setFillColor(sf::Color::Red);
     
     while(graphics->isWindowOpen())
     {
-        graphics->update(&inputs);
-        graphics->clear();
+    // Simulation updating
+        // Acting internally on the free particles
+        block.internalAct(block.hardness, block.steadiness, UPDATE_DT);
+        block.externalAct(UPDATE_DT);
 
-        // Applying selection input tools with a priority order
-        block.selectAndAct(inputs, UPDATE_DT);
+        fluid.internalAct(1.0/fluid.damping, fluid.viscosity, UPDATE_DT);
+        fluid.externalAct(UPDATE_DT);
+
+        // Acting on the selected particles with a priority order
+        inputHandler->update(&(graphics->window));
+        block.selectionAct(inputHandler, UPDATE_DT);
         if (!block.alreadySelected)
         {
-            fluid.selectAndAct(inputs, UPDATE_DT);
-            // if (!fluid.alreadySelected)
+            fluid.selectionAct(inputHandler, UPDATE_DT);
+            // if (!nextParticleSystem.alreadySelected)
             // {
-            //     /* Continue this pattern for other structures */
+            //     /* Continue this pattern for other particle systems */
             // }
         }
 
-        // Acting inter-structure forces
-        hc::StructureElement::interactStructures(&block, &fluid, graphics, BLOCK_FLUID_K, OIL_BLOCK_VISC);
+        // Acting the inter-structure forces
+        hc::ParticleSystem::interAct(&block, &fluid, 1.0/fluid.damping, fluid.viscosity);
 
-        // Acting, updating and drawing free, fixed and selected particles
-        block.update(graphics, inputs, COLLISION_K_IN_BLOCK, COLLISION_C_IN_BLOCK, UPDATE_DT);
-        fluid.update(graphics, inputs, 1.0/OIL_FLUID_DAMPING, OIL_FLUID_VISCOSITY, UPDATE_DT);
+        block.finalUpdate(UPDATE_DT);
+        fluid.finalUpdate(UPDATE_DT);
 
+    // Renderization
+        graphics->clear();
+        
+        graphics->render(&block, &freeBlock1Node, &fixdNode, &slctNode, UPDATE_DT, 255);
+        graphics->render(&fluid, &freeFluid1Node, &fixdNode, &slctNode, UPDATE_DT, 70);
         graphics->drawClock();
-        graphics->display();     
+
+        graphics->display(); 
     }
  
     return 0;

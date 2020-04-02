@@ -1,16 +1,17 @@
-#include "StructureElement.hpp"
+#include "Particle.hpp"
 
 namespace hc
 {
     /* --- Constructor --- */
     
-    Particle::Particle(MathUtils::Vector initPos, MathUtils::Vector initVel, double initMass, double initRad)
+    Particle::Particle(MathUtils::Vector initPos, MathUtils::Vector initVel, double initMass, double initRad, int initTypeID)
     {
         this->pos = initPos;
         this->vel = initVel;
         this->acc = MathUtils::Vector{0.f, 0.f};
         this->mass = initMass;
         this->rad = initRad;
+        this->typeID = initTypeID;
     }
 
     /* --- Acessors --- */
@@ -63,16 +64,6 @@ namespace hc
         
         MathUtils::Vector dAcc = MathUtils::vectorScale(force, 1/mass);
         acc = MathUtils::vectorAdd(acc, dAcc);
-    }
-
-    double Particle::getMass()
-    {
-        return mass;
-    }
-
-    double Particle::getRadius()
-    {
-        return rad;
     }
 
     void Particle::update(double dt)
