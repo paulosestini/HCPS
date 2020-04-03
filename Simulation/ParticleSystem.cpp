@@ -96,6 +96,7 @@ namespace hc
             }
         }
         alreadySelected = false;
+        return false;
     }
 
     // SELECTED PARTICLES WILL BE FIXED

@@ -19,8 +19,8 @@ namespace hc
         void act(double dt); // Applies the forces
         static MathUtils::Vector findSpringForce(Particle *p1, Particle *p2, double eqDist, double k, double c);
         
-        virtual bool isBroken() {}                      // Returns if bond is broken
-        virtual MathUtils::Vector calculateForce() {}   // Calculate force bond aplplies on particles
+        virtual bool isBroken() = 0;                      // Returns if bond is broken
+        virtual MathUtils::Vector calculateForce() = 0;   // Calculate force bond aplplies on particles
 
         // Local variables
         MathUtils::Vector calculatedForce;
@@ -38,7 +38,7 @@ namespace hc
         ~IdealBond() {}
 
         // Functions
-        virtual bool isBroken();            // Returns if bond is broken (never)
+        bool isBroken();            // Returns if bond is broken (never)
         MathUtils::Vector calculateForce(); // Calculate force that bond applies on particles (F = kx + cv)
 
         // Local specific variables

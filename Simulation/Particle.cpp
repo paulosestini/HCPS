@@ -4,14 +4,13 @@ namespace hc
 {
     /* --- Constructor --- */
     
-    Particle::Particle(MathUtils::Vector initPos, MathUtils::Vector initVel, double initMass, double initRad, int initTypeID)
+    Particle::Particle(MathUtils::Vector initPos, MathUtils::Vector initVel, double initMass, double initRad)
     {
         this->pos = initPos;
         this->vel = initVel;
         this->acc = MathUtils::Vector{0.f, 0.f};
         this->mass = initMass;
         this->rad = initRad;
-        this->typeID = initTypeID;
     }
 
     /* --- Acessors --- */

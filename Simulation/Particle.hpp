@@ -11,7 +11,7 @@ namespace hc
     {
     public:
         // Constructor/Destructor
-        Particle(MathUtils::Vector initPos, MathUtils::Vector initVel, double initMass, double initRad, int initTypeID);
+        Particle(MathUtils::Vector initPos, MathUtils::Vector initVel, double initMass, double initRad);
         ~Particle() {}
 
         //Accesors
@@ -29,7 +29,6 @@ namespace hc
 
         double getMass() {return mass;}
         double getRadius() {return rad;}
-        int getTypeID() {return typeID;}
 
         //Functions
         void update(double dt); // Updates the particles position with timestep dt
@@ -41,6 +40,5 @@ namespace hc
         MathUtils::Vector acc;
         double mass;
         double rad;
-        int typeID;
     };
 }

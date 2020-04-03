@@ -2,7 +2,7 @@
 
 namespace hc
 {
-    void RectShape_XGrid::build(int typeID)
+    void RectShape_XGrid::build()
     {
         int particles_x = (int)(width/dx);
         int particles_y = (int)(height/dy);
@@ -15,7 +15,7 @@ namespace hc
         {
             for(int j = 0; j < particles_y; j++)
             {
-                particles.push_back(new Particle(MathUtils::Vector{initialPos.x+i*dx, initialPos.y+j*dy}, MathUtils::Vector{0.f, 0.f}, mass/particles_x/particles_y, collisionRadius, typeID));
+                particles.push_back(new Particle(MathUtils::Vector{initialPos.x+i*dx, initialPos.y+j*dy}, MathUtils::Vector{0.f, 0.f}, mass/particles_x/particles_y, collisionRadius));
             }
         }
         

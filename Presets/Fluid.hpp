@@ -19,7 +19,7 @@ namespace hc
         double viscosity             = 1.0;
         MathUtils::Vector initialPos = MathUtils::Vector{0.0, 0.0};
 
-        void build(int typeID);
+        void build();
     };
 
     class Water : public Fluid

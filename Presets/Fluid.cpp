@@ -2,7 +2,7 @@
 
 namespace hc
 {
-    void Fluid::build(int typeID)
+    void Fluid::build()
     {
         int particles_x = (int)(width/collisionRadius/2)+1;
         int particles_y = (int)(height/collisionRadius/2);
@@ -13,7 +13,7 @@ namespace hc
         {
             for(int j = 0; j < particles_y; j++)
             {
-                particles.push_back(new Particle(MathUtils::Vector{initialPos.x+i*2*collisionRadius, initialPos.y+j*2*collisionRadius}, MathUtils::Vector{0.f, 0.f}, mass/particles_x/particles_y, collisionRadius, typeID));
+                particles.push_back(new Particle(MathUtils::Vector{initialPos.x+i*2*collisionRadius, initialPos.y+j*2*collisionRadius}, MathUtils::Vector{0.f, 0.f}, mass/particles_x/particles_y, collisionRadius));
             }
         }
     }

@@ -12,7 +12,7 @@ int main()
 {
     /* **  -----------------------------------------------------  ***
     * ***                                                         ***
-    * ***  WELCOME TO HCSS (Hyper Cool Structural Simulator)!!!   ***
+    * ***  WELCOME TO HCPS (Hyper Cool Physics Simulator)!!!   ***
     * ***                                                         ***
     * ***  -----------------------------------------------------  ***
     * ***  Creators:                                              ***
@@ -45,12 +45,12 @@ int main()
     // Particle systems
         hc::HardBlock block(1.0/2); // Try it with different presets
             /* Edit block's parematers between here */
-        block.build(0);
-        
+        block.build();
+    
         hc::Water fluid; // Try it with different presets
             /* Edit fluid's parematers between here */
             fluid.collisionRadius /= 2;
-        fluid.build(1);
+        fluid.build();
 
     // Particle shapes
         sf::CircleShape freeBlock1Node = sf::CircleShape(1);

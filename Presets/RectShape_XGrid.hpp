@@ -23,7 +23,7 @@ namespace hc
         MathUtils::Vector initialPos = MathUtils::Vector{0.0, 0.0};
 
         void setScale(double scale);
-        void build(int typeID);
+        void build();
     };
 
     class HardBlock : public RectShape_XGrid
