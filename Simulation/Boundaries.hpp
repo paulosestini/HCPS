@@ -1,8 +1,9 @@
 #pragma once
 
-#include "DEFINITIONS.hpp"
-#include "MathUtils.hpp"
-#include "GraphicElements.hpp"
+#include <iostream>
+
+#include "../DEFINITIONS.hpp"
+#include "../Utils/MathUtils.hpp"
 #include "Particle.hpp"
 
 namespace hc

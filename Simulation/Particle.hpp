@@ -1,7 +1,9 @@
 #pragma once
 
-#include "MathUtils.hpp"
-#include "GraphicElements.hpp"
+#include <iostream>
+
+#include "../DEFINITIONS.hpp"
+#include "../Utils/MathUtils.hpp"
 
 namespace hc
 {
@@ -9,7 +11,7 @@ namespace hc
     {
     public:
         // Constructor/Destructor
-        Particle(MathUtils::Vector initPos, MathUtils::Vector initVel, double initMass, double initRad);
+        Particle(MathUtils::Vector initPos, MathUtils::Vector initVel, double initMass, double initRad, int initTypeID);
         ~Particle() {}
 
         //Accesors
@@ -25,9 +27,9 @@ namespace hc
         void setAcceleration(MathUtils::Vector newAcc);
         void applyForce(MathUtils::Vector force);
 
-        double getMass();
-
-        double getRadius();
+        double getMass() {return mass;}
+        double getRadius() {return rad;}
+        int getTypeID() {return typeID;}
 
         //Functions
         void update(double dt); // Updates the particles position with timestep dt
@@ -39,5 +41,6 @@ namespace hc
         MathUtils::Vector acc;
         double mass;
         double rad;
+        int typeID;
     };
 }
