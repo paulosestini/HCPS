@@ -37,37 +37,37 @@ int main()
    */
 
     // User inputs handler
-        hc::InputHandler* inputHandler = new hc::InputHandler();
+    hc::InputHandler* inputHandler = new hc::InputHandler();
 
     // Screen renderer
-        hc::Renderer* graphics = new hc::Renderer(SPATIAL_SCALE, CLOCK_DT);
+    hc::Renderer* graphics = new hc::Renderer(SPATIAL_SCALE, CLOCK_DT);
 
     // Particle systems
-        hc::HardBlock block(1.0/2); // Try it with different presets
+    hc::HardBlock block(1.0/2); // Try it with different presets
             /* Edit block's parematers between here */
-        block.build();
+    block.build();
     
-        hc::Water fluid; // Try it with different presets
-            /* Edit fluid's parematers between here */
-            fluid.collisionRadius /= 2;
-        fluid.build();
+    hc::Water fluid; // Try it with different presets
+    /* Edit fluid's parematers between here */
+    fluid.collisionRadius /= 2;
+    fluid.build();
 
     // Particle shapes
-        sf::CircleShape freeBlock1Node = sf::CircleShape(1);
-        freeBlock1Node.setOrigin(freeBlock1Node.getRadius(), freeBlock1Node.getRadius());
-        freeBlock1Node.setFillColor(sf::Color::White);
+    sf::CircleShape freeBlock1Node = sf::CircleShape(1);
+    freeBlock1Node.setOrigin(freeBlock1Node.getRadius(), freeBlock1Node.getRadius());
+    freeBlock1Node.setFillColor(sf::Color::White);
 
-        sf::CircleShape freeFluid1Node = sf::CircleShape(2);
-        freeFluid1Node.setOrigin(freeFluid1Node.getRadius(), freeFluid1Node.getRadius());
-        freeFluid1Node.setFillColor(sf::Color::Blue);
+    sf::CircleShape freeFluid1Node = sf::CircleShape(2);
+    freeFluid1Node.setOrigin(freeFluid1Node.getRadius(), freeFluid1Node.getRadius());
+    freeFluid1Node.setFillColor(sf::Color::Blue);
 
-        sf::CircleShape slctNode = sf::CircleShape(3);
-        slctNode.setOrigin(slctNode.getRadius(), slctNode.getRadius());
-        slctNode.setFillColor(sf::Color::Yellow);
+    sf::CircleShape slctNode = sf::CircleShape(3);
+    slctNode.setOrigin(slctNode.getRadius(), slctNode.getRadius());
+    slctNode.setFillColor(sf::Color::Yellow);
         
-        sf::CircleShape fixdNode = sf::CircleShape(3);
-        fixdNode.setOrigin(fixdNode.getRadius(), fixdNode.getRadius());
-        fixdNode.setFillColor(sf::Color::Red);
+    sf::CircleShape fixdNode = sf::CircleShape(3);
+    fixdNode.setOrigin(fixdNode.getRadius(), fixdNode.getRadius());
+    fixdNode.setFillColor(sf::Color::Red);
     
     while(graphics->isWindowOpen())
     {
