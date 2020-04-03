@@ -15,7 +15,7 @@ namespace hc
         boundBox.setFillColor(sf::Color::Black);
         boundBox.setPosition(BOUND_BOX_POS_X*scale, BOUND_BOX_POS_Y*scale);
 
-        clockFont.loadFromFile("Ressources/Fonts/arial.ttf");
+        clockFont.loadFromFile("Resources/Fonts/arial.ttf");
         clockText.setFont(clockFont);
         clockText.setFillColor(sf::Color::Blue);
 
